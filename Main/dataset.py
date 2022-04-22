@@ -34,9 +34,12 @@ class WeiboDataset(InMemoryDataset):
     def process(self):
         data_list = []
 
-        import random
         raw_file_names = self.raw_file_names
-        random.shuffle(raw_file_names)
+
+        # ind = list(range(len(raw_file_names)))
+        # print(ind)
+        # random.shuffle(ind)
+        # print(ind)
 
         # for filename in raw_file_names:
         #     filepath = os.path.join(self.raw_dir, filename)
@@ -82,7 +85,8 @@ class WeiboDataset(InMemoryDataset):
                         break
                     if comment['content'] in pass_comment and comment['children'] == []:
                         continue
-                    x = torch.cat([x, self.word2vec.get_sentence_embedding(clean_comment(comment['content'])).view(1, -1)], 0)
+                    x = torch.cat(
+                        [x, self.word2vec.get_sentence_embedding(clean_comment(comment['content'])).view(1, -1)], 0)
                     if comment['parent'] == -1:
                         row.append(0)
                     else:
@@ -98,7 +102,8 @@ class WeiboDataset(InMemoryDataset):
                 edge_attr = torch.ones(len(row), 1)
                 y = torch.LongTensor(y)
                 edge_index = torch.LongTensor(edge_index)
-                one_data = Data(x=x, y=y, edge_index=edge_index, edge_attr=edge_attr) if 'label' in post['source'].keys() \
+                one_data = Data(x=x, y=y, edge_index=edge_index, edge_attr=edge_attr) if 'label' in post[
+                    'source'].keys() \
                     else Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
                 data_list.append(one_data)
         else:
@@ -112,14 +117,16 @@ class WeiboDataset(InMemoryDataset):
                 if 'label' in post['source'].keys():
                     y.append(post['source']['label'])
                 for i, comment in enumerate(post['comment']):
-                    x = torch.cat([x, self.word2vec.get_sentence_embedding(clean_comment(comment['content'])).view(1, -1)], 0)
+                    x = torch.cat(
+                        [x, self.word2vec.get_sentence_embedding(clean_comment(comment['content'])).view(1, -1)], 0)
                     row.append(comment['parent'] + 1)
                     col.append(comment['comment id'] + 1)
                 edge_index = [row, col]
                 edge_attr = torch.ones(len(row), 1)
                 y = torch.LongTensor(y)
                 edge_index = torch.LongTensor(edge_index)
-                one_data = Data(x=x, y=y, edge_index=edge_index, edge_attr=edge_attr) if 'label' in post['source'].keys() \
+                one_data = Data(x=x, y=y, edge_index=edge_index, edge_attr=edge_attr) if 'label' in post[
+                    'source'].keys() \
                     else Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
                 data_list.append(one_data)
 

@@ -115,7 +115,7 @@ if __name__ == '__main__':
     # ============
     args = arg_parse()
     target = args.target
-    dim = 64
+    dim = 80
     epochs = 500
     batch_size = 8
     lamda = args.lamda
@@ -123,18 +123,18 @@ if __name__ == '__main__':
     separate_encoder = args.separate_encoder
 
     dirname = os.path.dirname(os.path.abspath(__file__))
-    label_path = os.path.join(dirname, '..', 'Data', 'Weibo', 'processed', 'label')
+    train_path = os.path.join(dirname, '..', 'Data', 'Weibo', 'processed', 'label', 'train')
+    val_path = os.path.join(dirname, '..', 'Data', 'Weibo', 'processed', 'label', 'val')
+    test_path = os.path.join(dirname, '..', 'Data', 'Weibo', 'processed', 'label', 'test')
     unlabel_path = os.path.join(dirname, '..', 'Data', 'Weibo', 'processed', 'unlabel')
     model_path = os.path.join(dirname, '..', 'Model', 'w2v.model')
 
     word2vec = Embedding(model_path)
 
-    label_dataset = WeiboDataset(label_path, word2vec)
+    train_dataset = WeiboDataset(train_path, word2vec)
+    val_dataset = WeiboDataset(val_path, word2vec)
+    test_dataset = WeiboDataset(test_path, word2vec)
     unlabel_dataset = WeiboDataset(unlabel_path, word2vec, clean=False)
-
-    train_dataset = label_dataset[:int(len(label_dataset) * 0.8)]
-    val_dataset = label_dataset[int(len(label_dataset) * 0.8):int(len(label_dataset) * 0.9)]
-    test_dataset = label_dataset[int(len(label_dataset) * 0.9):]
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=batch_size)

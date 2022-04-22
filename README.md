@@ -1,26 +1,36 @@
+# 代码运行说明
+
+运行```Process.process.py```进行数据的预处理
+
+运行```Main.main.py```开始训练
+
+Data文件夹如下：
+
+![数据摆放位置](./Img/Data文件夹.png)
+
 # 实验记录
 
 1. Weibo
 
-实验结果：
+ - 实验结果
 
-| id | mode | label limit num | unlabel limit num | clean | unlabel post num | word embedding size | graph embedding size | batch size | convergence epoch | val acc | test acc | test prec(T/F) | test rec(T/F) | f1(T/F) | 
-| :----:| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |
-| 1 | semi-sup | 600 | no limit | 清理“转发微博” | 60198 | 100 | 64 | **8** | 32 | 0.955 | 0.934 | 0.920/0.947 | 0.941/0.927 | 0.930/0.937 |
-| 2 | semi-sup | 600 | no limit | 清理“转发微博” | 60198 | 100 | 64 | **12** | 48 | 0.948 | 0.923 | 0.886/0.961 | 0.959/0.891 | 0.921/0.925 |
-| 3 | semi-sup | 600 | no limit | 清理“转发微博” | 60198 | 100 | 64 | **16** | 36 | 0.951 | 0.925 | 0.897/0.953 | 0.950/0.903 | 0.922/0.928 |
-| 4 | semi-sup | 600 | no limit | **清理“转发微博”，清理“回复@”** | 60198 | 100 | 64 | 8 | 68 | 0.955 | 0.936 | 0.936/0.935 | 0.928/0.943 | 0.932/0.939 |
-| 5 | semi-sup | 600 | no limit | **清理“转发微博”，清理“回复@”** | 60198 | 100 | 64 | 8 | 70 | 0.957 | 0.936 | 0.957/0.919 | 0.905/0.963 | 0.930/0.940 |
+| id | mode | use unsup | label limit num | unlabel limit num | clean | unlabel post num | word embedding size | graph embedding size | batch size | convergence epoch | val acc | test acc | test prec(T/F) | test rec(T/F) | f1(T/F) | 
+| :----:| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |
+| 1 | semi-sup | label,unlabel | 600 | no limit | 清理“转发微博”，清理“回复@” | 60198 | 100 | 80 | **8** | 41 | 0.964 | 0.936 | 0.936/0.935 | 0.928/0.943 | 0.932/0.939 |
 
-word embedding参数：
 
-| id | algo | word embedding size |train w2v post num | window | min count | epoch |
-| :----: | :----: | :----: | :----: | :----: | :----: | :----: |
-| 1 | skip-gram | 100 | all label + 60198 unlabel | 5 | 5 | 10 |
-| 2 | skip-gram | 100 | all label + 60198 unlabel | 5 | 5 | 10 |
-| 3 | skip-gram | 100 | all label + 60198 unlabel | 5 | 5 | 10 |
-| 4 | skip-gram | 100 | all label + 60198 unlabel | 5 | 5 | 10 |
-| 5 | skip-gram | 100 | all label + 60198 unlabel | 5 | 5 | 10 |
+- word embedding参数
+
+| id | algo | word embedding size |train w2v post num | window | min count | epoch | vacab size |
+| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |
+| 1 | skip-gram | 100 | all label + 60198 unlabel | 5 | 5 | 10 | 10828 |
+| 2 | skip-gram | 100 | all label + 60198 unlabel | 5 | 5 | 10 | 10828 |
+| 3 | skip-gram | 100 | all label + 60198 unlabel | 5 | 5 | 10 | 10828 |
+| 4 | skip-gram | 100 | all label + 60198 unlabel | 5 | 5 | 10 | 10828 |
+| 5 | skip-gram | 100 | all label + 60198 unlabel | 5 | 5 | 10 | 10828 |
+| 6 | skip-gram | 100 | all label + 60198 unlabel | 5 | 5 | 10 | 10828 |
+| 7 | skip-gram | 100 | all label + 60198 unlabel | 5 | 5 | 10 | 10828 |
+| 8 | skip-gram | 100 | all label + 60198 unlabel | 5 | 5 | 10 | 10828 |
 
 2. Tweet
 

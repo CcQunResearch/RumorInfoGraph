@@ -8,6 +8,7 @@
 import os
 import json
 import shutil
+import random
 from Utils import write_json
 
 
@@ -19,15 +20,22 @@ def process_weibo_dataset(dataset_path, output_path):
     :param output_path: 输出路径
     """
     label_path = os.path.join(dataset_path, 'Weibo.txt')
+    train_path = os.path.join(output_path, 'train', 'raw')
+    val_path = os.path.join(output_path, 'val', 'raw')
+    test_path = os.path.join(output_path, 'test', 'raw')
 
     post_id_list = []
     post_label_list = []
+    all_post = []
 
-    if not os.path.exists(output_path):
-        os.mkdir(output_path)
-    else:
+    if os.path.exists(output_path):
         shutil.rmtree(output_path)
-        os.mkdir(output_path)
+    os.makedirs(train_path)
+    os.makedirs(val_path)
+    os.makedirs(test_path)
+    os.makedirs(os.path.join(output_path, 'train', 'processed'))
+    os.makedirs(os.path.join(output_path, 'val', 'processed'))
+    os.makedirs(os.path.join(output_path, 'test', 'processed'))
 
     f = open(label_path, 'r', encoding='utf-8')
     post_list = f.readlines()
@@ -63,5 +71,17 @@ def process_weibo_dataset(dataset_path, output_path):
                 parent_index = reverse_dict[post[i]['parent']]
                 comment_list[i - 1]['parent'] = parent_index
                 comment_list[parent_index]['children'].append(i - 1)
+        all_post.append((post_id, {'source': source, 'comment': comment_list}))
 
-        write_json({'source': source, 'comment': comment_list}, os.path.join(output_path, f'{post_id}.json'))
+    random.shuffle(all_post)
+    train_post = all_post[:int(len(all_post) * 0.8)]
+    val_post = all_post[int(len(all_post) * 0.8):int(len(all_post) * 0.9)]
+    test_post = all_post[int(len(all_post) * 0.9):]
+    write_post(train_post, train_path)
+    write_post(val_post, val_path)
+    write_post(test_post, test_path)
+
+
+def write_post(post_list, path):
+    for post in post_list:
+        write_json(post[1], os.path.join(path, f'{post[0]}.json'))
