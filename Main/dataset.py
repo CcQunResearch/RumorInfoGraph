@@ -36,11 +36,6 @@ class WeiboDataset(InMemoryDataset):
 
         raw_file_names = self.raw_file_names
 
-        # ind = list(range(len(raw_file_names)))
-        # print(ind)
-        # random.shuffle(ind)
-        # print(ind)
-
         # for filename in raw_file_names:
         #     filepath = os.path.join(self.raw_dir, filename)
         #     post = json.load(open(filepath, 'r', encoding='utf-8'))
@@ -74,13 +69,8 @@ class WeiboDataset(InMemoryDataset):
                     if comment['content'] in pass_comment and comment['children'] == []:
                         pass_num += 1
                         continue
-                    # a = post['comment'][i]['comment id']
                     post['comment'][i]['comment id'] -= pass_num
-                    # b = post['comment'][i]['comment id']
-                    # if a != b:
-                    #     print(a, b)
                 for i, comment in enumerate(post['comment']):
-                    # print(comment['comment id'])
                     if i == limit_num:
                         break
                     if comment['content'] in pass_comment and comment['children'] == []:
@@ -92,12 +82,6 @@ class WeiboDataset(InMemoryDataset):
                     else:
                         row.append(post['comment'][id_to_index[comment['parent']]]['comment id'] + 1)
                     col.append(comment['comment id'] + 1)
-                # print(post['comment'])
-                # max_row = max(row)
-                # max_col = max(col)
-                # print(max_row, max_col)
-                # print(x.shape)
-                # print()
                 edge_index = [row, col]
                 edge_attr = torch.ones(len(row), 1)
                 y = torch.LongTensor(y)

@@ -20,26 +20,14 @@ class Encoder(torch.nn.Module):
         out = F.relu(self.lin0(data.x))
         h = out.unsqueeze(0)
 
-        # print(data.x.shape)
-        # print(data.edge_index.shape)
-        # print(data.edge_attr.shape)
-
         feat_map = []
         for i in range(3):
-            # print(data.x.shape)
-            # print(data.edge_index.shape)
-            # print(data.edge_attr.shape)
-            # print(list(out.cpu().detach().numpy()))
             m = F.relu(self.conv(out, data.edge_index, data.edge_attr))
             out, h = self.gru(m.unsqueeze(0), h)
             out = out.squeeze(0)
             feat_map.append(out)
 
-        # print(data.batch.shape)
         out = self.set2set(out, data.batch)
-        # print(out.shape)
-        # print(feat_map[-1].shape)
-        # print()
         return out, feat_map[-1]
 
 

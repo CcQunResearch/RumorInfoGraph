@@ -1,5 +1,7 @@
 # 代码运行说明
 
+1. 说明
+
 运行```Process.process.py```进行数据的预处理
 
 运行```Main.main.py```开始训练
@@ -7,6 +9,23 @@
 Data文件夹如下：
 
 ![数据摆放位置](./Img/Data文件夹.png)
+
+2. 用到的一些命令
+
+预处理数据集并训练词向量：
+```shell script
+nohup python process.py &
+```
+
+重新分配训练验证测试集（不必重新训练词向量）：
+```shell script
+nohup python process.py --no_step_two &
+```
+
+训练模型：
+```shell script
+nohup python main.py --dim 80 --batch_size 0 --gpu 0 &
+```
 
 # 实验记录
 
@@ -16,8 +35,7 @@ Data文件夹如下：
 
 | id | mode | use unsup | label limit num | unlabel limit num | clean | unlabel post num | word embedding size | graph embedding size | batch size | convergence epoch | val acc | test acc | test prec(T/F) | test rec(T/F) | f1(T/F) | 
 | :----:| :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: | :----: |
-| 1 | semi-sup | label,unlabel | 600 | no limit | 清理“转发微博”，清理“回复@” | 60198 | 100 | 80 | **8** | 41 | 0.964 | 0.936 | 0.936/0.935 | 0.928/0.943 | 0.932/0.939 |
-
+| 1 | semi-sup | label,unlabel | 600 | no limit | 清理“转发微博”，清理“回复@” | 60198 | 100 | 80 | **8** | 43 | 0.936 | 0.961 | 0.959/0.963 | 0.959/0.963 | 0.959/0.963 |
 
 - word embedding参数
 

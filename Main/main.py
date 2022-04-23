@@ -8,6 +8,10 @@ from Utils import Embedding
 from Main import WeiboDataset
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import warnings
+import sys
+
+dirname = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.join(dirname, '..'))
 
 warnings.filterwarnings("ignore")
 
@@ -108,26 +112,34 @@ def seed_everything(seed=1234):
 if __name__ == '__main__':
     seed_everything()
     from Main.model import Net
-    from Main.arguments import arg_parse
+    from Main.pargs import pargs
 
     # ============
     # Hyperparameters
     # ============
-    args = arg_parse()
-    target = args.target
-    dim = 80
-    epochs = 500
-    batch_size = 8
+    args = pargs()
+    dim = args.dim
+    epochs = args.epochs
+    batch_size = args.batch_size
     lamda = args.lamda
     use_unsup_loss = args.use_unsup_loss
     separate_encoder = args.separate_encoder
+    device = args.gpu if args.cuda else 'cpu'
 
-    dirname = os.path.dirname(os.path.abspath(__file__))
     train_path = os.path.join(dirname, '..', 'Data', 'Weibo', 'processed', 'label', 'train')
     val_path = os.path.join(dirname, '..', 'Data', 'Weibo', 'processed', 'label', 'val')
     test_path = os.path.join(dirname, '..', 'Data', 'Weibo', 'processed', 'label', 'test')
     unlabel_path = os.path.join(dirname, '..', 'Data', 'Weibo', 'processed', 'unlabel')
     model_path = os.path.join(dirname, '..', 'Model', 'w2v.model')
+    log_path = os.path.join(dirname, '..', 'Log', 'train.log')
+
+    log = open(log_path, 'w')
+    log.write(f'dim: {dim}\n')
+    log.write(f'batch size: {batch_size}\n')
+    log.write(f'lamda: {lamda}\n')
+    log.write(f'use unsup loss: {use_unsup_loss}\n')
+    log.write(f'separate encoder: {separate_encoder}\n\n')
+    log.flush()
 
     word2vec = Embedding(model_path)
 
@@ -147,20 +159,19 @@ if __name__ == '__main__':
     else:
         print(len(train_dataset), len(val_dataset), len(test_dataset))
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    # device = 'cpu'
     model = Net(word2vec.embedding_dim, dim, use_unsup_loss, separate_encoder).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=args.weight_decay)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', factor=0.7, patience=5, min_lr=0.000001)
 
     val_error, val_acc, val_prec, val_rec, val_f1 = test(val_loader)
     test_error, test_acc, test_prec, test_rec, test_f1 = test(test_loader)
-    print(
-        'Epoch: {:03d}, Validation BCE: {:.7f}, Test BCE: {:.7f}, Validation ACC: {:.3f}, Test ACC: {:.3f}, '
-        'Test PREC(T/F): {:.3f}/{:.3f}, Test REC(T/F): {:.3f}/{:.3f}, Test F1(T/F): {:.3f}/{:.3f}' \
-            .format(0, val_error, test_error, val_acc, test_acc, test_prec[0], test_prec[1], \
-                    test_rec[0], test_rec[1], test_f1[0], test_f1[1]))
+    log_info = 'Epoch: {:03d}, Validation BCE: {:.7f}, Test BCE: {:.7f}, Validation ACC: {:.3f}, Test ACC: {:.3f}, Test PREC(T/F): {:.3f}/{:.3f}, Test REC(T/F): {:.3f}/{:.3f}, Test F1(T/F): {:.3f}/{:.3f}' \
+        .format(0, val_error, test_error, val_acc, test_acc, test_prec[0], test_prec[1], test_rec[0], test_rec[1],
+                test_f1[0], test_f1[1])
+    print(log_info)
+    log.write(log_info + '\n')
+    log.flush()
 
     best_val_error = None
     for epoch in range(1, epochs):
@@ -174,12 +185,9 @@ if __name__ == '__main__':
         #     best_val_error = val_error
         test_error, test_acc, test_prec, test_rec, test_f1 = test(test_loader)
 
-        print('Epoch: {:03d}, LR: {:7f}, Loss: {:.7f}, Validation BCE: {:.7f}, '
-              'Test BCE: {:.7f}, Validation ACC: {:.3f}, Test ACC: {:.3f}, '
-              'Test PREC(T/F): {:.3f}/{:.3f}, Test REC(T/F): {:.3f}/{:.3f}, Test F1(T/F): {:.3f}/{:.3f}' \
-              .format(epoch, lr, loss, val_error, test_error, val_acc, test_acc, test_prec[0], test_prec[1], \
-                      test_rec[0], test_rec[1], test_f1[0], test_f1[1]))
-
-    with open('supervised.log', 'a+') as f:
-        f.write('{},{},{},{},{},{},{},{}\n'.format(target, args.train_num, use_unsup_loss, separate_encoder, args.lamda,
-                                                   args.weight_decay, val_error, test_error))
+        log_info = 'Epoch: {:03d}, LR: {:7f}, Loss: {:.7f}, Validation BCE: {:.7f}, Test BCE: {:.7f}, Validation ACC: {:.3f}, Test ACC: {:.3f}, Test PREC(T/F): {:.3f}/{:.3f}, Test REC(T/F): {:.3f}/{:.3f}, Test F1(T/F): {:.3f}/{:.3f}' \
+            .format(epoch, lr, loss, val_error, test_error, val_acc, test_acc, test_prec[0], test_prec[1], test_rec[0],
+                    test_rec[1], test_f1[0], test_f1[1])
+        print(log_info)
+        log.write(log_info + '\n')
+        log.flush()
