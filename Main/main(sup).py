@@ -21,41 +21,36 @@ from torch_geometric.loader import DataLoader
 from torch_geometric.data.batch import Batch
 from Main.pargs import pargs
 from Main.sort import sort_weibo_dataset, sort_weibo_self_dataset, sort_weibo_2class_dataset
-from Main.utils import create_log_dict_semisup, write_log, write_json
+from Main.utils import create_log_dict_sup, write_log, write_json
 from Main.word2vec import Embedding, collect_sentences, train_word2vec
 from Main.dataset import WeiboDataset
 from Main.model import Net
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 
-def semisup_train(train_loader, unsup_train_loader, model, optimizer, separate_encoder, gamma, lamda, device):
+def sup_train(train_loader, model, optimizer, separate_encoder, gamma, lamda, device, use_unsup_loss):
     model.train()
     loss_all = 0
 
-    for data1, data2 in zip(train_loader, unsup_train_loader):
-        data1 = data1.to(device)
-        data2 = data2.to(device)
+    for data in train_loader:
+        data = data.to(device)
 
         optimizer.zero_grad()
-        sup_loss = F.binary_cross_entropy(model(data1), data1.y.to(torch.float32))
+        sup_loss = F.binary_cross_entropy(model(data), data.y.to(torch.float32))
 
-        data1_list = data1.to_data_list()
-        data2_list = data2.to_data_list()
-        for item in data1_list:
-            item.y = None
-        join_data = Batch.from_data_list(data1_list + data2_list).to(device)
-
-        unsup_loss = model.unsup_loss(join_data)
-
-        if separate_encoder:
-            unsup_sup_loss = model.unsup_sup_loss(join_data)
-            loss = sup_loss + unsup_loss * gamma + unsup_sup_loss * lamda
+        if use_unsup_loss:
+            unsup_loss = model.unsup_loss(data)
+            if separate_encoder:
+                unsup_sup_loss = model.unsup_sup_loss(data)
+                loss = sup_loss + unsup_loss * gamma + unsup_sup_loss * lamda
+            else:
+                loss = sup_loss + unsup_loss * lamda
         else:
-            loss = sup_loss + unsup_loss * lamda
+            loss = sup_loss
 
         loss.backward()
         optimizer.step()
-        loss_all += loss.item() * data1.num_graphs
+        loss_all += loss.item() * data.num_graphs
 
     return loss_all / len(train_loader.dataset)
 
@@ -108,7 +103,6 @@ if __name__ == '__main__':
 
     unsup_train_size = args.unsup_train_size
     dataset = args.dataset
-    unsup_dataset = args.unsup_dataset
     vector_size = args.vector_size
     device = args.gpu if args.cuda else 'cpu'
     runs = args.runs
@@ -120,13 +114,14 @@ if __name__ == '__main__':
     gamma = args.gamma
     lamda = args.lamda
     epochs = args.epochs
+    use_unsup_loss = args.use_unsup_loss
 
     label_source_path = osp.join(dirname, '..', 'Data', dataset, 'source')
     label_dataset_path = osp.join(dirname, '..', 'Data', dataset, 'dataset')
     train_path = osp.join(label_dataset_path, 'train')
     val_path = osp.join(label_dataset_path, 'val')
     test_path = osp.join(label_dataset_path, 'test')
-    unlabel_dataset_path = osp.join(dirname, '..', 'Data', unsup_dataset, 'dataset')
+    unlabel_dataset_path = osp.join(dirname, '..', 'Data', 'Weibo-unsup', 'dataset')
     model_path = osp.join(dirname, '..', 'Model', f'w2v_{dataset}_{unsup_train_size}_{vector_size}.model')
 
     log_name = time.strftime("%Y-%m-%d %H-%M-%S", time.localtime(time.time()))
@@ -153,13 +148,10 @@ if __name__ == '__main__':
 
         word2vec = Embedding(model_path)
 
-        unlabel_dataset = WeiboDataset(unlabel_dataset_path, word2vec, clean=False)
-        unsup_train_loader = DataLoader(unlabel_dataset, batch_size * unsup_bs_ratio, shuffle=True)
-
         if dataset == 'Weibo':
-            sort_weibo_dataset(label_source_path, label_dataset_path, k_shot=k)
+            sort_weibo_dataset(label_source_path, label_dataset_path)
         elif 'DRWeibo' in dataset:
-            sort_weibo_2class_dataset(label_source_path, label_dataset_path, k_shot=k)
+            sort_weibo_2class_dataset(label_source_path, label_dataset_path)
 
         train_dataset = WeiboDataset(train_path, word2vec)
         val_dataset = WeiboDataset(val_path, word2vec)
@@ -181,8 +173,7 @@ if __name__ == '__main__':
         for epoch in range(1, epochs + 1):
             lr = scheduler.optimizer.param_groups[0]['lr']
 
-            _ = semisup_train(train_loader, unsup_train_loader, model, optimizer,
-                              args.separate_encoder, gamma, lamda, device)
+            _ = sup_train(train_loader, model, optimizer, separate_encoder, gamma, lamda, device, use_unsup_loss)
 
             train_error, train_acc, _, _, _ = test(model, train_loader, device)
             val_error, log_info, log_record = test_and_log(model, val_loader, test_loader,

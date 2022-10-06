@@ -2,6 +2,7 @@ import torch.nn as nn
 from torch.nn import Sequential, Linear, ReLU, GRU
 
 from torch_geometric.nn import NNConv, Set2Set
+from torch_scatter import scatter_mean
 from Main.infomax import *
 
 
@@ -26,8 +27,8 @@ class Encoder(torch.nn.Module):
             out, h = self.gru(m.unsqueeze(0), h)
             out = out.squeeze(0)
             feat_map.append(out)
-
         out = self.set2set(out, data.batch)
+        # out = scatter_mean(out, data.batch, dim=0)
         return out, feat_map[-1]
 
 
@@ -94,6 +95,7 @@ class Net(torch.nn.Module):
 
     def forward(self, data):
         out, M = self.encoder(data)
+        print(out.shape)
         out = F.relu(self.fc1(out))
         out = F.sigmoid(self.fc2(out))
         pred = out.view(-1)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # @Time    : 2022/5/27 15:41
-# @Author  : CcQun
-# @Email   : 13698603020@163.com
+# @Author  :
+# @Email   :
 # @File    : utils.py
 # @Software: PyCharm
 # @Note    :
@@ -49,6 +49,7 @@ def clean_comment(comment_text):
 def create_log_dict_pretrain(args):
     log_dict = {}
     log_dict['dataset'] = args.dataset
+    log_dict['unsup_dataset'] = args.unsup_dataset
     log_dict['vector_size'] = args.vector_size
     log_dict['unsup_train_size'] = args.unsup_train_size
     log_dict['runs'] = args.runs
@@ -76,6 +77,7 @@ def create_log_dict_semisup(args):
     log_dict = {}
 
     log_dict['dataset'] = args.dataset
+    log_dict['unsup_dataset'] = args.unsup_dataset
     log_dict['vector_size'] = args.vector_size
     log_dict['unsup_train_size'] = args.unsup_train_size
     log_dict['runs'] = args.runs
@@ -97,6 +99,38 @@ def create_log_dict_semisup(args):
     log_dict['dataset'] = args.dataset
     log_dict['unsup train size'] = args.unsup_train_size
     log_dict['runs'] = args.runs
+
+    log_dict['record'] = []
+    return log_dict
+
+
+def create_log_dict_sup(args):
+    log_dict = {}
+
+    log_dict['dataset'] = args.dataset
+    log_dict['vector_size'] = args.vector_size
+    log_dict['unsup_train_size'] = args.unsup_train_size
+    log_dict['runs'] = args.runs
+
+    log_dict['batch_size'] = args.batch_size
+    log_dict['unsup_bs_ratio'] = args.unsup_bs_ratio
+    log_dict['hidden'] = args.hidden
+    log_dict['separate_encoder'] = args.separate_encoder
+
+    log_dict['lr'] = args.lr
+    log_dict['epochs'] = args.epochs
+    log_dict['weight_decay'] = args.weight_decay
+    log_dict['gamma '] = args.gamma
+    log_dict['lamda'] = args.lamda
+
+    log_dict['k'] = args.k
+
+    log_dict['dataset'] = args.dataset
+    log_dict['unsup train size'] = args.unsup_train_size
+    log_dict['runs'] = args.runs
+
+    log_dict['use unlabel'] = args.use_unlabel
+    log_dict['use unsup loss'] = args.use_unsup_loss
 
     log_dict['record'] = []
     return log_dict
